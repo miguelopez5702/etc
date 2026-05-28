@@ -1,3 +1,1212 @@
-<HTML>
-  <h1>Páxina nº 1</h1>
-</HTML>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CHOCHI - Hyperpop Track 🔥</title>
+    <meta name="description" content="Chochi - El puto amo de Viveiro. Hyperpop track generado con Web Audio API.">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&family=Space+Grotesk:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --neon-pink: #ff2d95;
+            --neon-blue: #00f0ff;
+            --neon-purple: #b829ff;
+            --neon-green: #39ff14;
+            --dark-bg: #0a0a0f;
+            --card-bg: rgba(15, 15, 25, 0.85);
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--dark-bg);
+            color: #fff;
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Animated background */
+        .bg-animation {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .bg-animation::before {
+            content: '';
+            position: absolute;
+            width: 200%; height: 200%;
+            top: -50%; left: -50%;
+            background: 
+                radial-gradient(ellipse at 20% 50%, rgba(255, 45, 149, 0.15) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 20%, rgba(0, 240, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 80%, rgba(184, 41, 255, 0.12) 0%, transparent 50%);
+            animation: bgRotate 20s linear infinite;
+        }
+
+        @keyframes bgRotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Floating particles */
+        .particle {
+            position: fixed;
+            width: 4px; height: 4px;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 1;
+            animation: floatUp linear infinite;
+        }
+
+        @keyframes floatUp {
+            0% { transform: translateY(100vh) scale(0); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-10vh) scale(1); opacity: 0; }
+        }
+
+        /* Main container */
+        .container {
+            position: relative;
+            z-index: 2;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 30px;
+        }
+
+        /* Title */
+        .title-section {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .title-section h1 {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 900;
+            font-size: 5rem;
+            letter-spacing: -3px;
+            background: linear-gradient(135deg, var(--neon-pink), var(--neon-blue), var(--neon-purple));
+            background-size: 200% 200%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: gradientShift 3s ease infinite;
+            text-shadow: none;
+            filter: drop-shadow(0 0 30px rgba(255, 45, 149, 0.3));
+        }
+
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .subtitle {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.1rem;
+            color: rgba(255, 255, 255, 0.5);
+            margin-top: 8px;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+        }
+
+        .genre-tag {
+            display: inline-block;
+            margin-top: 15px;
+            padding: 6px 18px;
+            border-radius: 20px;
+            background: linear-gradient(135deg, rgba(255, 45, 149, 0.2), rgba(184, 41, 255, 0.2));
+            border: 1px solid rgba(255, 45, 149, 0.4);
+            font-size: 0.85rem;
+            color: var(--neon-pink);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        /* Visualizer */
+        .visualizer-container {
+            width: 100%;
+            max-width: 800px;
+            height: 200px;
+            background: var(--card-bg);
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            backdrop-filter: blur(20px);
+            overflow: hidden;
+            position: relative;
+            box-shadow: 
+                0 20px 60px rgba(0, 0, 0, 0.5),
+                inset 0 1px 0 rgba(255, 255, 255, 0.05);
+        }
+
+        #visualizer {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Player controls */
+        .player-card {
+            width: 100%;
+            max-width: 800px;
+            background: var(--card-bg);
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            backdrop-filter: blur(20px);
+            padding: 35px;
+            box-shadow: 
+                0 20px 60px rgba(0, 0, 0, 0.5),
+                inset 0 1px 0 rgba(255, 255, 255, 0.05);
+        }
+
+        .controls {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        .btn {
+            border: none;
+            cursor: pointer;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .btn:hover {
+            transform: scale(1.1);
+        }
+
+        .btn:active {
+            transform: scale(0.95);
+        }
+
+        .btn-play {
+            width: 80px; height: 80px;
+            background: linear-gradient(135deg, var(--neon-pink), var(--neon-purple));
+            font-size: 2rem;
+            color: #fff;
+            box-shadow: 0 8px 30px rgba(255, 45, 149, 0.4);
+        }
+
+        .btn-play:hover {
+            box-shadow: 0 12px 40px rgba(255, 45, 149, 0.6);
+        }
+
+        .btn-play.playing {
+            background: linear-gradient(135deg, var(--neon-blue), var(--neon-green));
+            box-shadow: 0 8px 30px rgba(0, 240, 255, 0.4);
+            animation: pulse 1.5s ease infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 8px 30px rgba(0, 240, 255, 0.4); }
+            50% { box-shadow: 0 8px 50px rgba(0, 240, 255, 0.7); }
+        }
+
+        .btn-secondary {
+            width: 50px; height: 50px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 1.2rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.15);
+            color: #fff;
+        }
+
+        /* Volume & Speed sliders */
+        .slider-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        .slider-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .slider-label {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.5);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            min-width: 60px;
+        }
+
+        input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 120px;
+            height: 4px;
+            border-radius: 2px;
+            background: rgba(255, 255, 255, 0.1);
+            outline: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px; height: 16px;
+            border-radius: 50%;
+            background: var(--neon-pink);
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(255, 45, 149, 0.5);
+            transition: transform 0.2s;
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.3);
+        }
+
+        /* BPM display */
+        .bpm-display {
+            text-align: center;
+            margin-top: 15px;
+        }
+
+        .bpm-value {
+            font-family: 'Space Grotesk', monospace;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--neon-blue);
+            text-shadow: 0 0 20px rgba(0, 240, 255, 0.3);
+        }
+
+        .bpm-label {
+            font-size: 0.7rem;
+            color: rgba(255, 255, 255, 0.4);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        /* Lyrics section */
+        .lyrics-card {
+            width: 100%;
+            max-width: 800px;
+            background: var(--card-bg);
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            backdrop-filter: blur(20px);
+            padding: 35px;
+            box-shadow: 
+                0 20px 60px rgba(0, 0, 0, 0.5),
+                inset 0 1px 0 rgba(255, 255, 255, 0.05);
+        }
+
+        .lyrics-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+
+        .lyrics-header h2 {
+            font-size: 1.3rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--neon-pink), var(--neon-blue));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .lyrics-icon {
+            font-size: 1.5rem;
+        }
+
+        .lyrics-section {
+            margin-bottom: 25px;
+        }
+
+        .section-label {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+        }
+
+        .label-intro { background: rgba(57, 255, 20, 0.15); color: var(--neon-green); }
+        .label-verso { background: rgba(0, 240, 255, 0.15); color: var(--neon-blue); }
+        .label-estribillo { background: rgba(255, 45, 149, 0.15); color: var(--neon-pink); }
+        .label-outro { background: rgba(184, 41, 255, 0.15); color: var(--neon-purple); }
+
+        .lyrics-text {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1rem;
+            line-height: 1.8;
+            color: rgba(255, 255, 255, 0.75);
+            padding-left: 15px;
+            border-left: 2px solid rgba(255, 255, 255, 0.08);
+            transition: all 0.5s ease;
+        }
+
+        .lyrics-text.active {
+            color: #fff;
+            border-left-color: var(--neon-pink);
+            text-shadow: 0 0 20px rgba(255, 45, 149, 0.2);
+        }
+
+        /* Status indicator */
+        .status {
+            text-align: center;
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.4);
+            font-family: 'Space Grotesk', sans-serif;
+            min-height: 24px;
+        }
+
+        .status.active {
+            color: var(--neon-green);
+            animation: statusPulse 2s ease infinite;
+        }
+
+        @keyframes statusPulse {
+            0%, 100% { opacity: 0.7; }
+            50% { opacity: 1; }
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 30px 0;
+            color: rgba(255, 255, 255, 0.2);
+            font-size: 0.8rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .title-section h1 {
+                font-size: 3rem;
+            }
+            .controls {
+                gap: 12px;
+            }
+            .btn-play {
+                width: 65px; height: 65px;
+                font-size: 1.6rem;
+            }
+            .slider-row {
+                flex-direction: column;
+                gap: 15px;
+            }
+            .player-card, .lyrics-card {
+                padding: 20px;
+            }
+        }
+
+        /* Glitch effect on title hover */
+        .title-section h1:hover {
+            animation: glitch 0.3s ease;
+        }
+
+        @keyframes glitch {
+            0% { transform: translate(0); }
+            20% { transform: translate(-3px, 3px); }
+            40% { transform: translate(3px, -3px); }
+            60% { transform: translate(-2px, -2px); }
+            80% { transform: translate(2px, 2px); }
+            100% { transform: translate(0); }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-animation"></div>
+
+    <div class="container">
+        <!-- Title -->
+        <div class="title-section">
+            <h1>CHOCHI</h1>
+            <p class="subtitle">El puto amo de Viveiro</p>
+            <span class="genre-tag">⚡ Hyperpop</span>
+        </div>
+
+        <!-- Visualizer -->
+        <div class="visualizer-container">
+            <canvas id="visualizer"></canvas>
+        </div>
+
+        <!-- Player -->
+        <div class="player-card">
+            <div class="controls">
+                <button class="btn btn-secondary" id="btn-stop" title="Parar">⏹</button>
+                <button class="btn btn-play" id="btn-play" title="Reproducir">▶</button>
+                <button class="btn btn-secondary" id="btn-voice" title="Activar/Desactivar voz">🎤</button>
+            </div>
+
+            <div class="bpm-display">
+                <div class="bpm-value" id="bpm-display">170</div>
+                <div class="bpm-label">BPM</div>
+            </div>
+
+            <div class="slider-row">
+                <div class="slider-group">
+                    <span class="slider-label">🔊 Vol</span>
+                    <input type="range" id="volume" min="0" max="100" value="70">
+                </div>
+                <div class="slider-group">
+                    <span class="slider-label">⚡ BPM</span>
+                    <input type="range" id="bpm" min="120" max="220" value="170">
+                </div>
+            </div>
+
+            <div class="status" id="status">Pulsa ▶ para empezar la fiesta</div>
+        </div>
+
+        <!-- Lyrics -->
+        <div class="lyrics-card">
+            <div class="lyrics-header">
+                <span class="lyrics-icon">📝</span>
+                <h2>Letra</h2>
+            </div>
+
+            <div class="lyrics-section" id="section-intro">
+                <div class="section-label label-intro">🏎️ Intro</div>
+                <p class="lyrics-text">Ya está, el puto amo de Viveiro. ¿Qué pasa, guarro? Si no sabes de qué va, mejor cállate la boca. ¡Dale!</p>
+            </div>
+
+            <div class="lyrics-section" id="section-verso1">
+                <div class="section-label label-verso">🎤 Verso 1</div>
+                <p class="lyrics-text">Salgo de casa, el carromato no arranca, el cubrecarter colgando, la luz se me estanca. Voy pa' la Expla, a ver qué se cuece hoy, no tengo un puto duro, pero el rey soy. Mi padre me llama, me mete otra multa, la DGT no me quiere, mi paciencia es adulta. Fumo un piti, mientras espero en la Cepsa, la vida es una mierda, pero me interesa.</p>
+            </div>
+
+            <div class="lyrics-section" id="section-estribillo">
+                <div class="section-label label-estribillo">🔥 Estribillo</div>
+                <p class="lyrics-text">Chilling en el sofá, me fumo otro más, si quieres movida, no mires pa' atrás. "¿Bajas hoy?" me dicen, yo siempre contesto: "Si hay algo con clase, yo nunca me opongo". Sarna con gusto no pica, eso es un hecho, me duele la espalda, pero estoy satisfecho.</p>
+            </div>
+
+            <div class="lyrics-section" id="section-verso2">
+                <div class="section-label label-verso">🎤 Verso 2</div>
+                <p class="lyrics-text">Fui a la playa, ni dios me contesta, aquí la gente va de guay, es una fiesta. Me pillé una silla de 20 pavos en el Wallapop, está llena de manchas, pero tiene el top. El Miguel sigue pocho, no caga desde el martes, vaya tela, bro, a ver quién lo comparte. No me des spoilers de Boku no Hero, que te parto la cara, soy el puto acero.</p>
+            </div>
+
+            <div class="lyrics-section" id="section-outro">
+                <div class="section-label label-outro">✌️ Outro</div>
+                <p class="lyrics-text">Ya está, no me rayes más. Voy a ver si me echo una siesta o me pajeo un rato. ¿Bajamos o qué? Donette total. ¡Vaya locura!</p>
+            </div>
+        </div>
+
+        <div class="footer">
+            CHOCHI © 2026 — Generado con Web Audio API 🎛️
+        </div>
+    </div>
+
+    <script>
+        // ============================================================
+        // CHOCHI HYPERPOP SYNTHESIZER
+        // Web Audio API beat machine + Speech Synthesis vocals
+        // ============================================================
+
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        let ctx = null;
+        let masterGain = null;
+        let analyser = null;
+        let isPlaying = false;
+        let voiceEnabled = true;
+        let bpm = 170;
+        let currentStep = 0;
+        let schedulerTimer = null;
+        let nextNoteTime = 0;
+        let currentSection = -1;
+
+        // DOM
+        const btnPlay = document.getElementById('btn-play');
+        const btnStop = document.getElementById('btn-stop');
+        const btnVoice = document.getElementById('btn-voice');
+        const volumeSlider = document.getElementById('volume');
+        const bpmSlider = document.getElementById('bpm');
+        const bpmDisplay = document.getElementById('bpm-display');
+        const statusEl = document.getElementById('status');
+        const canvas = document.getElementById('visualizer');
+        const canvasCtx = canvas.getContext('2d');
+
+        // Particles
+        function createParticles() {
+            const colors = ['#ff2d95', '#00f0ff', '#b829ff', '#39ff14'];
+            for (let i = 0; i < 30; i++) {
+                const p = document.createElement('div');
+                p.className = 'particle';
+                p.style.left = Math.random() * 100 + '%';
+                p.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                p.style.animationDuration = (5 + Math.random() * 10) + 's';
+                p.style.animationDelay = Math.random() * 10 + 's';
+                p.style.width = p.style.height = (2 + Math.random() * 4) + 'px';
+                document.body.appendChild(p);
+            }
+        }
+        createParticles();
+
+        // Init Audio Context
+        function initAudio() {
+            if (ctx) return;
+            ctx = new AudioCtx();
+
+            masterGain = ctx.createGain();
+            masterGain.gain.value = volumeSlider.value / 100;
+
+            analyser = ctx.createAnalyser();
+            analyser.fftSize = 256;
+
+            masterGain.connect(analyser);
+            analyser.connect(ctx.destination);
+        }
+
+        // ============================================================
+        // SYNTHESIZER INSTRUMENTS
+        // ============================================================
+
+        // Kick drum
+        function playKick(time) {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(160, time);
+            osc.frequency.exponentialRampToValueAtTime(30, time + 0.15);
+            gain.gain.setValueAtTime(1.0, time);
+            gain.gain.exponentialRampToValueAtTime(0.001, time + 0.3);
+            osc.connect(gain);
+            gain.connect(masterGain);
+            osc.start(time);
+            osc.stop(time + 0.3);
+        }
+
+        // Snare / Clap
+        function playSnare(time) {
+            // Noise burst
+            const bufferSize = ctx.sampleRate * 0.1;
+            const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+            const data = buffer.getChannelData(0);
+            for (let i = 0; i < bufferSize; i++) {
+                data[i] = (Math.random() * 2 - 1) * 0.8;
+            }
+            const noise = ctx.createBufferSource();
+            noise.buffer = buffer;
+
+            const noiseGain = ctx.createGain();
+            noiseGain.gain.setValueAtTime(0.7, time);
+            noiseGain.gain.exponentialRampToValueAtTime(0.001, time + 0.12);
+
+            const filter = ctx.createBiquadFilter();
+            filter.type = 'bandpass';
+            filter.frequency.value = 3000;
+            filter.Q.value = 1.5;
+
+            noise.connect(filter);
+            filter.connect(noiseGain);
+            noiseGain.connect(masterGain);
+            noise.start(time);
+            noise.stop(time + 0.12);
+
+            // Body
+            const osc = ctx.createOscillator();
+            const oscGain = ctx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(200, time);
+            osc.frequency.exponentialRampToValueAtTime(100, time + 0.06);
+            oscGain.gain.setValueAtTime(0.5, time);
+            oscGain.gain.exponentialRampToValueAtTime(0.001, time + 0.08);
+            osc.connect(oscGain);
+            oscGain.connect(masterGain);
+            osc.start(time);
+            osc.stop(time + 0.08);
+        }
+
+        // Hi-hat
+        function playHihat(time, open = false) {
+            const bufferSize = ctx.sampleRate * (open ? 0.15 : 0.05);
+            const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+            const data = buffer.getChannelData(0);
+            for (let i = 0; i < bufferSize; i++) {
+                data[i] = (Math.random() * 2 - 1) * 0.3;
+            }
+            const noise = ctx.createBufferSource();
+            noise.buffer = buffer;
+
+            const gain = ctx.createGain();
+            gain.gain.setValueAtTime(0.25, time);
+            gain.gain.exponentialRampToValueAtTime(0.001, time + (open ? 0.15 : 0.04));
+
+            const hp = ctx.createBiquadFilter();
+            hp.type = 'highpass';
+            hp.frequency.value = 7000;
+
+            noise.connect(hp);
+            hp.connect(gain);
+            gain.connect(masterGain);
+            noise.start(time);
+            noise.stop(time + (open ? 0.15 : 0.05));
+        }
+
+        // Hyperpop synth lead (detuned saws)
+        function playSynthLead(time, freq, duration = 0.15) {
+            const voices = 3;
+            const detune = [-15, 0, 15];
+            for (let i = 0; i < voices; i++) {
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(freq, time);
+                osc.detune.setValueAtTime(detune[i], time);
+
+                gain.gain.setValueAtTime(0.08, time);
+                gain.gain.setValueAtTime(0.08, time + duration * 0.7);
+                gain.gain.exponentialRampToValueAtTime(0.001, time + duration);
+
+                const filter = ctx.createBiquadFilter();
+                filter.type = 'lowpass';
+                filter.frequency.setValueAtTime(4000, time);
+                filter.frequency.exponentialRampToValueAtTime(800, time + duration);
+                filter.Q.value = 5;
+
+                osc.connect(filter);
+                filter.connect(gain);
+                gain.connect(masterGain);
+                osc.start(time);
+                osc.stop(time + duration);
+            }
+        }
+
+        // Sub bass
+        function playBass(time, freq, duration = 0.2) {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'square';
+            osc.frequency.setValueAtTime(freq, time);
+
+            const filter = ctx.createBiquadFilter();
+            filter.type = 'lowpass';
+            filter.frequency.value = 400;
+
+            gain.gain.setValueAtTime(0.35, time);
+            gain.gain.setValueAtTime(0.35, time + duration * 0.8);
+            gain.gain.exponentialRampToValueAtTime(0.001, time + duration);
+
+            osc.connect(filter);
+            filter.connect(gain);
+            gain.connect(masterGain);
+            osc.start(time);
+            osc.stop(time + duration);
+        }
+
+        // Arp / bleepy lead
+        function playArp(time, freq) {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'square';
+            osc.frequency.setValueAtTime(freq, time);
+
+            gain.gain.setValueAtTime(0.06, time);
+            gain.gain.exponentialRampToValueAtTime(0.001, time + 0.08);
+
+            osc.connect(gain);
+            gain.connect(masterGain);
+            osc.start(time);
+            osc.stop(time + 0.1);
+        }
+
+        // Engine sound for intro
+        function playEngine(time) {
+            const bufferSize = ctx.sampleRate * 1.5;
+            const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+            const data = buffer.getChannelData(0);
+            let phase = 0;
+            for (let i = 0; i < bufferSize; i++) {
+                const freq = 40 + Math.sin(i / ctx.sampleRate * 3) * 15;
+                phase += freq / ctx.sampleRate;
+                data[i] = (Math.sin(phase * Math.PI * 2) * 0.3 + (Math.random() * 2 - 1) * 0.15) * 
+                    Math.min(1, i / (ctx.sampleRate * 0.1)) * 
+                    Math.max(0, 1 - i / bufferSize);
+            }
+            const source = ctx.createBufferSource();
+            source.buffer = buffer;
+            const gain = ctx.createGain();
+            gain.gain.value = 0.5;
+            const filter = ctx.createBiquadFilter();
+            filter.type = 'lowpass';
+            filter.frequency.value = 300;
+            source.connect(filter);
+            filter.connect(gain);
+            gain.connect(masterGain);
+            source.start(time);
+        }
+
+        // WhatsApp notification sound
+        function playNotification(time) {
+            const freqs = [880, 1100];
+            freqs.forEach((f, i) => {
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.value = f;
+                gain.gain.setValueAtTime(0.15, time + i * 0.12);
+                gain.gain.exponentialRampToValueAtTime(0.001, time + i * 0.12 + 0.15);
+                osc.connect(gain);
+                gain.connect(masterGain);
+                osc.start(time + i * 0.12);
+                osc.stop(time + i * 0.12 + 0.15);
+            });
+        }
+
+        // ============================================================
+        // SONG STRUCTURE & SEQUENCER
+        // ============================================================
+
+        // Musical notes (frequencies)
+        const NOTE = {
+            C3: 130.81, D3: 146.83, E3: 164.81, F3: 174.61, G3: 196.00, A3: 220.00, B3: 246.94,
+            C4: 261.63, D4: 293.66, E4: 329.63, F4: 349.23, G4: 392.00, A4: 440.00, B4: 493.88,
+            C5: 523.25, D5: 587.33, E5: 659.25, G5: 783.99,
+        };
+
+        // Chord progressions (hyperpop vibes: minor, dramatic)
+        const chordProg = [
+            [NOTE.A3, NOTE.C4, NOTE.E4],   // Am
+            [NOTE.F3, NOTE.A3, NOTE.C4],    // F
+            [NOTE.G3, NOTE.B3, NOTE.D4],    // G
+            [NOTE.E3, NOTE.G3, NOTE.B3],    // Em
+        ];
+
+        const bassLine = [NOTE.A3, NOTE.F3, NOTE.G3, NOTE.E3];
+
+        const arpNotes = [
+            [NOTE.A4, NOTE.C5, NOTE.E5, NOTE.A4],
+            [NOTE.F4, NOTE.A4, NOTE.C5, NOTE.F4],
+            [NOTE.G4, NOTE.B4, NOTE.D5, NOTE.G4],
+            [NOTE.E4, NOTE.G4, NOTE.B4, NOTE.E4],
+        ];
+
+        // Song sections with step counts (16 steps = 1 bar at 4/4)
+        const songSections = [
+            { name: 'intro', bars: 4, id: 'section-intro' },
+            { name: 'verso1', bars: 8, id: 'section-verso1' },
+            { name: 'estribillo', bars: 6, id: 'section-estribillo' },
+            { name: 'verso2', bars: 8, id: 'section-verso2' },
+            { name: 'outro', bars: 4, id: 'section-outro' },
+        ];
+
+        let totalSteps = 0;
+        let sectionMap = [];
+        songSections.forEach(s => {
+            const steps = s.bars * 16;
+            for (let i = 0; i < steps; i++) {
+                sectionMap.push(s);
+            }
+            totalSteps += steps;
+        });
+
+        function getStepDuration() {
+            return 60.0 / bpm / 4; // sixteenth note
+        }
+
+        function scheduleStep(stepNum, time) {
+            if (stepNum >= totalSteps) {
+                // Song finished
+                setTimeout(() => stopSong(), 100);
+                return;
+            }
+
+            const section = sectionMap[stepNum];
+            const localStep = stepNum % 16;
+            const bar = Math.floor(stepNum / 16);
+            const chordIdx = bar % 4;
+
+            // ---- DRUM PATTERNS ----
+            // Kick on 0, 4, 8, 12 (four-on-the-floor hyperpop)
+            if (localStep % 4 === 0) {
+                playKick(time);
+            }
+
+            // Snare on 4, 12
+            if (localStep === 4 || localStep === 12) {
+                playSnare(time);
+            }
+
+            // Hi-hats on every step (hyperpop speed!)
+            if (section.name !== 'intro' || stepNum > 32) {
+                if (localStep % 2 === 0) {
+                    playHihat(time, localStep === 8);
+                }
+            }
+
+            // Extra snare rolls in estribillo
+            if (section.name === 'estribillo' && (localStep === 14 || localStep === 15)) {
+                playSnare(time);
+            }
+
+            // ---- MELODIC PATTERNS ----
+            if (section.name === 'intro') {
+                // Engine at very start
+                if (stepNum === 0) {
+                    playEngine(time);
+                }
+                // Build up arp towards end of intro
+                if (bar >= 2 && localStep % 4 === 0) {
+                    playArp(time, arpNotes[chordIdx][localStep / 4 % 4]);
+                }
+            } else if (section.name === 'outro') {
+                // Sparse, winding down
+                if (localStep === 0) {
+                    playBass(time, bassLine[chordIdx], getStepDuration() * 4);
+                }
+                if (localStep % 8 === 0) {
+                    playSynthLead(time, chordProg[chordIdx][0], getStepDuration() * 2);
+                }
+                // Notification sounds near the end
+                const outroLocalBar = bar - songSections.slice(0, 4).reduce((a, s) => a + s.bars, 0);
+                if (outroLocalBar >= 2 && localStep === 0) {
+                    playNotification(time);
+                }
+            } else {
+                // VERSO & ESTRIBILLO: full beat
+                // Bass on every bar
+                if (localStep === 0) {
+                    playBass(time, bassLine[chordIdx], getStepDuration() * 6);
+                }
+
+                // Synth chords
+                if (localStep === 0 || localStep === 8) {
+                    const chord = chordProg[chordIdx];
+                    chord.forEach(freq => {
+                        playSynthLead(time, freq, getStepDuration() * 4);
+                    });
+                }
+
+                // Arp pattern (faster in estribillo)
+                if (section.name === 'estribillo') {
+                    if (localStep % 2 === 0) {
+                        playArp(time, arpNotes[chordIdx][Math.floor(localStep / 2) % 4]);
+                    }
+                } else {
+                    if (localStep % 4 === 0) {
+                        playArp(time, arpNotes[chordIdx][localStep / 4 % 4]);
+                    }
+                }
+            }
+
+            // Highlight current lyrics section
+            highlightSection(section.id);
+        }
+
+        // ============================================================
+        // SCHEDULER (look-ahead for accuracy)
+        // ============================================================
+
+        const lookAhead = 0.1; // seconds
+        const scheduleInterval = 25; // ms
+
+        function scheduler() {
+            while (nextNoteTime < ctx.currentTime + lookAhead) {
+                scheduleStep(currentStep, nextNoteTime);
+                nextNoteTime += getStepDuration();
+                currentStep++;
+                if (currentStep >= totalSteps) break;
+            }
+        }
+
+        // ============================================================
+        // SPEECH SYNTHESIS (Vocals)
+        // ============================================================
+
+        const lyrics = [
+            {
+                section: 'intro',
+                delay: 2000,
+                text: 'Ya está, el puto amo de Viveiro. ¿Qué pasa, guarro? Si no sabes de qué va, mejor cállate la boca. ¡Dale!'
+            },
+            {
+                section: 'verso1',
+                delay: 0,
+                text: 'Salgo de casa, el carromato no arranca, el cubrecarter colgando, la luz se me estanca. Voy pa la Expla, a ver qué se cuece hoy, no tengo un puto duro, pero el rey soy.'
+            },
+            {
+                section: 'verso1b',
+                delay: 8000,
+                text: 'Mi padre me llama, me mete otra multa, la DGT no me quiere, mi paciencia es adulta. Fumo un piti, mientras espero en la Cepsa, la vida es una mierda, pero me interesa.'
+            },
+            {
+                section: 'estribillo',
+                delay: 0,
+                text: 'Chilling en el sofá, me fumo otro más, si quieres movida, no mires pa atrás. ¿Bajas hoy? me dicen, yo siempre contesto: Si hay algo con clase, yo nunca me opongo.'
+            },
+            {
+                section: 'estribillob',
+                delay: 7000,
+                text: 'Sarna con gusto no pica, eso es un hecho, me duele la espalda, pero estoy satisfecho.'
+            },
+            {
+                section: 'verso2',
+                delay: 0,
+                text: 'Fui a la playa, ni dios me contesta, aquí la gente va de guay, es una fiesta. Me pillé una silla de 20 pavos en el Wallapop, está llena de manchas, pero tiene el top.'
+            },
+            {
+                section: 'verso2b',
+                delay: 8000,
+                text: 'El Miguel sigue pocho, no caga desde el martes, vaya tela, bro, a ver quién lo comparte. No me des spoilers de Boku no Hero, que te parto la cara, soy el puto acero.'
+            },
+            {
+                section: 'outro',
+                delay: 0,
+                text: 'Ya está, no me rayes más. Voy a ver si me echo una siesta. ¿Bajamos o qué? Donette total. ¡Vaya locura!'
+            }
+        ];
+
+        let speechTimeouts = [];
+
+        function speakLyrics() {
+            if (!voiceEnabled) return;
+            if (!('speechSynthesis' in window)) {
+                statusEl.textContent = '⚠️ Tu navegador no soporta síntesis de voz';
+                return;
+            }
+
+            // Calculate section timings
+            const stepDur = getStepDuration() * 1000; // ms per sixteenth note
+            let sectionStartMs = 0;
+            const sectionTimings = {};
+            songSections.forEach(s => {
+                sectionTimings[s.name] = sectionStartMs;
+                sectionStartMs += s.bars * 16 * stepDur;
+            });
+
+            lyrics.forEach(lyric => {
+                const sectionName = lyric.section.replace(/b$/, '');
+                const baseDelay = sectionTimings[sectionName] || 0;
+                const totalDelay = baseDelay + lyric.delay + 500; // small offset
+
+                const timeout = setTimeout(() => {
+                    if (!isPlaying || !voiceEnabled) return;
+                    const utterance = new SpeechSynthesisUtterance(lyric.text);
+                    utterance.lang = 'es-ES';
+                    utterance.rate = 1.3; // Fast for hyperpop
+                    utterance.pitch = 1.1;
+                    utterance.volume = 0.9;
+
+                    // Try to find a Spanish voice
+                    const voices = speechSynthesis.getVoices();
+                    const esVoice = voices.find(v => v.lang.startsWith('es')) || 
+                                    voices.find(v => v.lang.includes('es'));
+                    if (esVoice) utterance.voice = esVoice;
+
+                    speechSynthesis.speak(utterance);
+                }, totalDelay);
+                speechTimeouts.push(timeout);
+            });
+        }
+
+        // ============================================================
+        // VISUALIZER
+        // ============================================================
+
+        function resizeCanvas() {
+            canvas.width = canvas.parentElement.clientWidth;
+            canvas.height = canvas.parentElement.clientHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        function drawVisualizer() {
+            requestAnimationFrame(drawVisualizer);
+
+            if (!analyser) {
+                // Draw idle state
+                canvasCtx.fillStyle = 'rgba(10, 10, 15, 1)';
+                canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                const centerY = canvas.height / 2;
+                canvasCtx.strokeStyle = 'rgba(255, 45, 149, 0.15)';
+                canvasCtx.lineWidth = 1;
+                canvasCtx.beginPath();
+                canvasCtx.moveTo(0, centerY);
+                const time = Date.now() / 1000;
+                for (let x = 0; x < canvas.width; x++) {
+                    const y = centerY + Math.sin(x * 0.02 + time * 2) * 10;
+                    canvasCtx.lineTo(x, y);
+                }
+                canvasCtx.stroke();
+                return;
+            }
+
+            const bufferLength = analyser.frequencyBinCount;
+            const dataArray = new Uint8Array(bufferLength);
+            analyser.getByteFrequencyData(dataArray);
+
+            // Clear with fade
+            canvasCtx.fillStyle = 'rgba(10, 10, 15, 0.3)';
+            canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
+
+            const barWidth = (canvas.width / bufferLength) * 2.5;
+            let x = 0;
+
+            for (let i = 0; i < bufferLength; i++) {
+                const barHeight = (dataArray[i] / 255) * canvas.height * 0.85;
+
+                // Gradient colors based on frequency
+                const hue = (i / bufferLength) * 120 + 300; // pink to blue range
+                const saturation = 80 + (dataArray[i] / 255) * 20;
+                const lightness = 40 + (dataArray[i] / 255) * 20;
+
+                canvasCtx.fillStyle = `hsla(${hue % 360}, ${saturation}%, ${lightness}%, 0.8)`;
+
+                // Bars from bottom
+                const barY = canvas.height - barHeight;
+                canvasCtx.fillRect(x, barY, barWidth - 1, barHeight);
+
+                // Mirror bars from top (subtle)
+                canvasCtx.fillStyle = `hsla(${hue % 360}, ${saturation}%, ${lightness}%, 0.2)`;
+                canvasCtx.fillRect(x, 0, barWidth - 1, barHeight * 0.3);
+
+                x += barWidth;
+            }
+
+            // Glow line in the middle
+            canvasCtx.strokeStyle = 'rgba(0, 240, 255, 0.3)';
+            canvasCtx.lineWidth = 1;
+            canvasCtx.beginPath();
+            const waveData = new Uint8Array(bufferLength);
+            analyser.getByteTimeDomainData(waveData);
+            for (let i = 0; i < bufferLength; i++) {
+                const v = waveData[i] / 128.0;
+                const y = (v * canvas.height) / 2;
+                if (i === 0) canvasCtx.moveTo(0, y);
+                else canvasCtx.lineTo((i / bufferLength) * canvas.width, y);
+            }
+            canvasCtx.stroke();
+        }
+        drawVisualizer();
+
+        // ============================================================
+        // LYRICS HIGHLIGHTING
+        // ============================================================
+
+        let lastHighlightedId = null;
+
+        function highlightSection(sectionId) {
+            if (sectionId === lastHighlightedId) return;
+            lastHighlightedId = sectionId;
+
+            document.querySelectorAll('.lyrics-text').forEach(el => el.classList.remove('active'));
+            const section = document.getElementById(sectionId);
+            if (section) {
+                const text = section.querySelector('.lyrics-text');
+                if (text) {
+                    text.classList.add('active');
+                    section.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }
+        }
+
+        // ============================================================
+        // PLAY / STOP CONTROLS
+        // ============================================================
+
+        function startSong() {
+            if (isPlaying) return;
+            initAudio();
+            if (ctx.state === 'suspended') ctx.resume();
+
+            isPlaying = true;
+            currentStep = 0;
+            nextNoteTime = ctx.currentTime + 0.1;
+
+            btnPlay.textContent = '⏸';
+            btnPlay.classList.add('playing');
+            statusEl.textContent = '🔊 Reproduciendo — CHOCHI Hyperpop';
+            statusEl.classList.add('active');
+
+            schedulerTimer = setInterval(scheduler, scheduleInterval);
+
+            // Start voice after a short delay (let beat build)
+            setTimeout(() => {
+                if (isPlaying) speakLyrics();
+            }, 500);
+        }
+
+        function stopSong() {
+            isPlaying = false;
+            if (schedulerTimer) {
+                clearInterval(schedulerTimer);
+                schedulerTimer = null;
+            }
+
+            // Stop speech
+            speechSynthesis.cancel();
+            speechTimeouts.forEach(t => clearTimeout(t));
+            speechTimeouts = [];
+
+            btnPlay.textContent = '▶';
+            btnPlay.classList.remove('playing');
+            statusEl.textContent = currentStep >= totalSteps ? '✅ ¡Canción terminada! Dale otra vez 🔄' : 'Pulsa ▶ para empezar la fiesta';
+            statusEl.classList.remove('active');
+
+            // Reset highlights
+            document.querySelectorAll('.lyrics-text').forEach(el => el.classList.remove('active'));
+            lastHighlightedId = null;
+            currentStep = 0;
+        }
+
+        // Event listeners
+        btnPlay.addEventListener('click', () => {
+            if (isPlaying) stopSong();
+            else startSong();
+        });
+
+        btnStop.addEventListener('click', stopSong);
+
+        btnVoice.addEventListener('click', () => {
+            voiceEnabled = !voiceEnabled;
+            btnVoice.style.opacity = voiceEnabled ? '1' : '0.4';
+            btnVoice.title = voiceEnabled ? 'Voz activada' : 'Voz desactivada';
+            if (!voiceEnabled) speechSynthesis.cancel();
+        });
+
+        volumeSlider.addEventListener('input', (e) => {
+            if (masterGain) masterGain.gain.value = e.target.value / 100;
+        });
+
+        bpmSlider.addEventListener('input', (e) => {
+            bpm = parseInt(e.target.value);
+            bpmDisplay.textContent = bpm;
+        });
+
+        // Load voices
+        if ('speechSynthesis' in window) {
+            speechSynthesis.onvoiceschanged = () => speechSynthesis.getVoices();
+        }
+    </script>
+</body>
+</html>
